@@ -5,10 +5,10 @@
 
 int main()
 {
-  zhell::CommandLine line;
+  zhell::Parser parser(std::cin);
   while (std::cin)
   {
-    line = zhell::get_cmd(std::cin);
-    zhell::exec_default(line);
+    std::unique_ptr< zhell::CommandLine > line = parser.get_cmd();
+    zhell::exec_default(*line);
   }
 }
