@@ -86,7 +86,7 @@ void zhell::Parser::handle_pipe(lines_t& v)
 
 void zhell::Parser::handle_space(lines_t& v)
 {
-  if (pos_ != token_start_)
+  if (pos_ != token_start_ && !double_quoted_)
   {
     v.back().args.emplace_back(temp_ + str_line_.substr(token_start_, pos_ - token_start_));
     temp_.clear();
