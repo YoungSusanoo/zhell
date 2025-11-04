@@ -4,8 +4,6 @@
 #include <iterator>
 
 zhell::Parser::Parser(std::istream& in):
-  start_line_ {},
-  curr_line_ {},
   str_line_ {},
   temp_ {},
   token_start_ {},
@@ -21,10 +19,11 @@ zhell::Parser::Parser(std::istream& in):
   symbols_[' '] = &Parser::handle_space;
 }
 
-std::unique_ptr< zhell::CommandLine > zhell::Parser::get_cmd()
+zhell::Parser::lines_t zhell::Parser::get_cmd()
 {
   std::getline(in_, str_line_, '\n');
-  curr_line_ = std::make_unique< CommandLine >();
+  lines_t v;
+  v.emplace_back(CommandLine {});
 
   for (pos_ = 0; pos_ < str_line_.size(); pos_++)
   {
@@ -36,17 +35,17 @@ std::unique_ptr< zhell::CommandLine > zhell::Parser::get_cmd()
     }
     if (symbols_.contains(str_line_[pos_]))
     {
-      (this->*symbols_[str_line_[pos_]])();
+      (this->*symbols_[str_line_[pos_]])(v);
     }
   }
-  curr_line_->args.emplace_back(temp_ + str_line_.substr(token_start_, str_line_.size() - token_start_));
-  return std::move(curr_line_);
+  v.back().args.emplace_back(temp_ + str_line_.substr(token_start_, str_line_.size() - token_start_));
+  return v;
 }
 
-void zhell::Parser::handle_ampersand()
+void zhell::Parser::handle_ampersand(lines_t& v)
 {}
 
-void zhell::Parser::handle_slash()
+void zhell::Parser::handle_slash(lines_t& v)
 {
   if (!double_quoted_)
   {
@@ -54,11 +53,11 @@ void zhell::Parser::handle_slash()
   }
 }
 
-void zhell::Parser::handle_double_quote()
+void zhell::Parser::handle_double_quote(lines_t& v)
 {
   if (double_quoted_)
   {
-    curr_line_->args.emplace_back(str_line_.substr(token_start_, pos_ - token_start_));
+    v.back().args.emplace_back(str_line_.substr(token_start_, pos_ - token_start_));
     double_quoted_ = false;
     token_start_ = pos_ + 1;
   }
@@ -68,14 +67,14 @@ void zhell::Parser::handle_double_quote()
   }
 }
 
-void zhell::Parser::handle_pipe()
+void zhell::Parser::handle_pipe(lines_t& v)
 {}
 
-void zhell::Parser::handle_space()
+void zhell::Parser::handle_space(lines_t& v)
 {
   if (pos_ != token_start_)
   {
-    curr_line_->args.emplace_back(temp_ + str_line_.substr(token_start_, pos_ - token_start_));
+    v.back().args.emplace_back(temp_ + str_line_.substr(token_start_, pos_ - token_start_));
     temp_.clear();
     token_start_ = pos_ + 1;
   }

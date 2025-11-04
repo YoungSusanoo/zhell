@@ -8,7 +8,7 @@ int main()
   zhell::Parser parser(std::cin);
   while (std::cin)
   {
-    std::unique_ptr< zhell::CommandLine > line = parser.get_cmd();
-    zhell::exec_default(*line);
+    zhell::Parser::lines_t lines = parser.get_cmd();
+    zhell::exec_default(lines.front());
   }
 }

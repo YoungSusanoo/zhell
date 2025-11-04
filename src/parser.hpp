@@ -13,13 +13,13 @@ namespace zhell
   class Parser
   {
   public:
+    using lines_t = std::vector< CommandLine >;
+
     Parser(std::istream& in);
-    std::unique_ptr< CommandLine > get_cmd();
+    lines_t get_cmd();
 
   private:
-    std::unordered_map< char, void (Parser::*)() > symbols_;
-    std::unique_ptr< CommandLine > start_line_;
-    std::unique_ptr< CommandLine > curr_line_;
+    std::unordered_map< char, void (Parser::*)(lines_t&) > symbols_;
     std::string str_line_;
     std::string temp_;
     size_t token_start_;
@@ -28,11 +28,11 @@ namespace zhell
     bool double_quoted_;
     std::istream& in_;
 
-    void handle_ampersand();
-    void handle_slash();
-    void handle_double_quote();
-    void handle_pipe();
-    void handle_space();
+    void handle_ampersand(lines_t& v);
+    void handle_slash(lines_t& v);
+    void handle_double_quote(lines_t& v);
+    void handle_pipe(lines_t& v);
+    void handle_space(lines_t& v);
   };
 }
 
