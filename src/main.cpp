@@ -9,6 +9,9 @@ int main()
   while (std::cin)
   {
     zhell::Parser::lines_t lines = parser.get_cmd();
-    zhell::exec_default(lines.front());
+    if (!lines.front().args.empty())
+    {
+      zhell::exec_default(lines.front());
+    }
   }
 }

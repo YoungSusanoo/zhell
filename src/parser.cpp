@@ -21,6 +21,7 @@ zhell::Parser::Parser(std::istream& in):
 
 zhell::Parser::lines_t zhell::Parser::get_cmd()
 {
+  clean();
   std::getline(in_, str_line_, '\n');
   lines_t v;
   v.emplace_back(CommandLine {});
@@ -38,8 +39,21 @@ zhell::Parser::lines_t zhell::Parser::get_cmd()
       (this->*symbols_[str_line_[pos_]])(v);
     }
   }
-  v.back().args.emplace_back(temp_ + str_line_.substr(token_start_, str_line_.size() - token_start_));
+  if (token_start_ != pos_)
+  {
+    v.back().args.emplace_back(temp_ + str_line_.substr(token_start_, str_line_.size() - token_start_));
+  }
   return v;
+}
+
+void zhell::Parser::clean()
+{
+  str_line_.clear();
+  temp_.clear();
+  token_start_ = 0;
+  pos_ = 0;
+  escaped_ = false;
+  double_quoted_ = false;
 }
 
 void zhell::Parser::handle_ampersand(lines_t& v)

@@ -28,6 +28,8 @@ namespace zhell
     bool double_quoted_;
     std::istream& in_;
 
+    void clean();
+
     void handle_ampersand(lines_t& v);
     void handle_slash(lines_t& v);
     void handle_double_quote(lines_t& v);
