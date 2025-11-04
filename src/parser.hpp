@@ -5,13 +5,10 @@
 #include <string>
 #include <memory>
 
+#include <command_line.hpp>
+
 namespace zhell
 {
-  struct CommandLine
-  {
-    std::vector< std::string > args;
-  };
-
   CommandLine get_cmd(std::istream& in);
 }
 
