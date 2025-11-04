@@ -9,6 +9,7 @@
 namespace zhell
 {
   void exec_default(CommandLine& line);
+  void exec_cd(CommandLine& line);
 }
 
 #endif

@@ -35,3 +35,25 @@ void zhell::exec_default(CommandLine& line)
   }
   waitpid(pid, nullptr, 0);
 }
+
+void zhell::exec_cd(CommandLine& line)
+{
+  if (line.args.empty())
+  {
+    return;
+  }
+  if (line.args.size() > 2)
+  {
+    std::cout << "cd: too many arguments\n";
+    return;
+  }
+  if (line.args.front() != "cd")
+  {
+    std::cout << line.args.front() << ": No such file or directory\n";
+    return;
+  }
+  if (chdir(line.args[1].c_str()) == -1)
+  {
+    std::cout << line.args.front() << ": " << line.args[1] << ": No such file or directory\n";
+  }
+}

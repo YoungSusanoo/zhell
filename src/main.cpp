@@ -11,7 +11,14 @@ int main()
     zhell::Parser::lines_t lines = parser.get_cmd();
     if (!lines.front().args.empty())
     {
-      zhell::exec_default(lines.front());
+      if (lines.front().args.front() == "cd")
+      {
+        zhell::exec_cd(lines.front());
+      }
+      else
+      {
+        zhell::exec_default(lines.front());
+      }
     }
   }
 }
