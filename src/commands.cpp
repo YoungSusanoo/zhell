@@ -21,6 +21,10 @@ void zhell::exec_default(std::vector< std::string >& args, int in, int out)
   {
     return;
   }
+  if (args.front() == "cd")
+  {
+    exec_cd(args);
+  }
 
   int pid = fork_and_exec(args, in, out);
   waitpid(pid, nullptr, 0);

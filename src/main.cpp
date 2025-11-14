@@ -21,10 +21,6 @@ int main()
         next_input = pipes[0];
         curr_output = pipes[1];
       }
-      // if (lines.front().args.front() == "cd")
-      // {
-      //   zhell::exec_cd(lines.front());
-      // }
 
       zhell::exec_default(i.args, curr_input, curr_output);
       if (curr_input != STDIN_FILENO)
