@@ -82,7 +82,18 @@ void zhell::Parser::handle_double_quote(lines_t& v)
 }
 
 void zhell::Parser::handle_pipe(lines_t& v)
-{}
+{
+  if (!double_quoted_)
+  {
+    if (pos_ != token_start_)
+    {
+      v.back().args.emplace_back(temp_ + str_line_.substr(token_start_, pos_ - token_start_));
+    }
+    v.back().output_type = OutputType::NEXT_LINE;
+    v.emplace_back(CommandLine {});
+    token_start_ = pos_ + 1;
+  }
+}
 
 void zhell::Parser::handle_space(lines_t& v)
 {
@@ -91,5 +102,9 @@ void zhell::Parser::handle_space(lines_t& v)
     v.back().args.emplace_back(temp_ + str_line_.substr(token_start_, pos_ - token_start_));
     temp_.clear();
     token_start_ = pos_ + 1;
+  }
+  else
+  {
+    token_start_++;
   }
 }

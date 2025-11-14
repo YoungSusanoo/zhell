@@ -9,16 +9,36 @@ int main()
   while (std::cin)
   {
     zhell::Parser::lines_t lines = parser.get_cmd();
-    if (!lines.front().args.empty())
+    int curr_input = STDIN_FILENO;
+    int next_input = STDIN_FILENO;
+    int curr_output = STDOUT_FILENO;
+    for (auto& i : lines)
     {
-      if (lines.front().args.front() == "cd")
+      if (i.output_type == zhell::OutputType::NEXT_LINE)
       {
-        zhell::exec_cd(lines.front());
+        int pipes[2];
+        pipe(pipes);
+        next_input = pipes[0];
+        curr_output = pipes[1];
       }
-      else
+      // if (lines.front().args.front() == "cd")
+      // {
+      //   zhell::exec_cd(lines.front());
+      // }
+
+      zhell::exec_default(i, curr_input, curr_output);
+      if (curr_input != STDIN_FILENO)
       {
-        zhell::exec_default(lines.front());
+        close(curr_input);
       }
+      if (curr_output != STDOUT_FILENO)
+      {
+        close(curr_output);
+      }
+
+      curr_input = next_input;
+      next_input = STDIN_FILENO;
+      curr_output = STDOUT_FILENO;
     }
   }
 }

@@ -10,29 +10,19 @@
 #include <string.h>
 #include <wait.h>
 
-void zhell::exec_default(CommandLine& line)
+namespace zhell
+{
+  int fork_and_exec(std::vector< std::string >& args, int in, int out);
+}
+
+void zhell::exec_default(CommandLine& line, int in, int out)
 {
   if (line.args.empty())
   {
     return;
   }
-  int pid = fork();
-  if (pid == 0)
-  {
-    close_range(3, ~0U, 0);
 
-    char** args = new char*[line.args.size() + 1];
-    std::transform(line.args.begin(), line.args.end(), args,
-                   [](auto& a)
-                   {
-                     return a.data();
-                   });
-    args[line.args.size()] = nullptr;
-
-    execvp(line.args.front().c_str(), args);
-    std::cout << line.args.front() << ": " << strerror(errno);
-    std::exit(-1);
-  }
+  int pid = fork_and_exec(line.args, in, out);
   waitpid(pid, nullptr, 0);
 }
 
@@ -56,4 +46,29 @@ void zhell::exec_cd(CommandLine& line)
   {
     std::cout << line.args.front() << ": " << line.args[1] << ": No such file or directory\n";
   }
+}
+
+int zhell::fork_and_exec(std::vector< std::string >& args, int in, int out)
+{
+  int pid = fork();
+  if (pid)
+  {
+    return pid;
+  }
+
+  dup2(in, STDIN_FILENO);
+  dup2(out, STDOUT_FILENO);
+  close_range(3, ~0U, 0);
+
+  char** args_c_str = new char*[args.size() + 1];
+  std::transform(args.begin(), args.end(), args_c_str,
+                 [](auto& a)
+                 {
+                   return a.data();
+                 });
+  args_c_str[args.size()] = nullptr;
+
+  execvp(args.front().c_str(), args_c_str);
+  std::cout << args.front() << ": " << strerror(errno);
+  std::exit(-1);
 }
