@@ -15,36 +15,36 @@ namespace zhell
   int fork_and_exec(std::vector< std::string >& args, int in, int out);
 }
 
-void zhell::exec_default(CommandLine& line, int in, int out)
+void zhell::exec_default(std::vector< std::string >& args, int in, int out)
 {
-  if (line.args.empty())
+  if (args.empty())
   {
     return;
   }
 
-  int pid = fork_and_exec(line.args, in, out);
+  int pid = fork_and_exec(args, in, out);
   waitpid(pid, nullptr, 0);
 }
 
-void zhell::exec_cd(CommandLine& line)
+void zhell::exec_cd(std::vector< std::string >& args)
 {
-  if (line.args.empty())
+  if (args.empty())
   {
     return;
   }
-  if (line.args.size() > 2)
+  if (args.size() > 2)
   {
     std::cout << "cd: too many arguments\n";
     return;
   }
-  if (line.args.front() != "cd")
+  if (args.front() != "cd")
   {
-    std::cout << line.args.front() << ": No such file or directory\n";
+    std::cout << args.front() << ": No such file or directory\n";
     return;
   }
-  if (chdir(line.args[1].c_str()) == -1)
+  if (chdir(args[1].c_str()) == -1)
   {
-    std::cout << line.args.front() << ": " << line.args[1] << ": No such file or directory\n";
+    std::cout << args.front() << ": " << args[1] << ": No such file or directory\n";
   }
 }
 

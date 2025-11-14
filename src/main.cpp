@@ -26,7 +26,7 @@ int main()
       //   zhell::exec_cd(lines.front());
       // }
 
-      zhell::exec_default(i, curr_input, curr_output);
+      zhell::exec_default(i.args, curr_input, curr_output);
       if (curr_input != STDIN_FILENO)
       {
         close(curr_input);
