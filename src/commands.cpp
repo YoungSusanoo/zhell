@@ -15,41 +15,46 @@ namespace zhell
   int fork_and_exec(std::vector< std::string >& args, int in, int out);
 }
 
-void zhell::exec_default(std::vector< std::string >& args, int in, int out)
+bool zhell::exec_default(std::vector< std::string >& args, int in, int out)
 {
   if (args.empty())
   {
-    return;
+    return false;
   }
   if (args.front() == "cd")
   {
-    exec_cd(args);
+    return exec_cd(args);
   }
 
   int pid = fork_and_exec(args, in, out);
-  waitpid(pid, nullptr, 0);
+  int status = 0;
+  waitpid(pid, &status, 0);
+  return !status;
 }
 
-void zhell::exec_cd(std::vector< std::string >& args)
+bool zhell::exec_cd(std::vector< std::string >& args)
 {
+  bool execution_completed = true;
   if (args.empty())
   {
-    return;
+    execution_completed = false;
   }
-  if (args.size() > 2)
+  else if (args.size() > 2)
   {
     std::cout << "cd: too many arguments\n";
-    return;
+    execution_completed = false;
   }
-  if (args.front() != "cd")
+  else if (args.front() != "cd")
   {
     std::cout << args.front() << ": No such file or directory\n";
-    return;
+    execution_completed = false;
   }
-  if (chdir(args[1].c_str()) == -1)
+  else if (chdir(args[1].c_str()) == -1)
   {
     std::cout << args.front() << ": " << args[1] << ": No such file or directory\n";
+    execution_completed = false;
   }
+  return execution_completed;
 }
 
 int zhell::fork_and_exec(std::vector< std::string >& args, int in, int out)
@@ -74,5 +79,5 @@ int zhell::fork_and_exec(std::vector< std::string >& args, int in, int out)
 
   execvp(args.front().c_str(), args_c_str);
   std::cout << args.front() << ": " << strerror(errno);
-  std::exit(-1);
+  std::exit(1);
 }

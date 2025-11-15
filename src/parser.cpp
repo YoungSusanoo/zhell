@@ -57,7 +57,18 @@ void zhell::Parser::clean()
 }
 
 void zhell::Parser::handle_ampersand(lines_t& v)
-{}
+{
+  if (!double_quoted_)
+  {
+    if (pos_ + 1 != str_line_.size() && str_line_[pos_ + 1] == '&')
+    {
+      v.back().args.emplace_back(temp_ + str_line_.substr(token_start_, pos_ - token_start_));
+      v.back().connect_type = ConnectType::NO_EXEC_IF_FAIL;
+      pos_++;
+      token_start_ = pos_ + 1;
+    }
+  }
+}
 
 void zhell::Parser::handle_slash(lines_t& v)
 {
@@ -89,9 +100,19 @@ void zhell::Parser::handle_pipe(lines_t& v)
     {
       v.back().args.emplace_back(temp_ + str_line_.substr(token_start_, pos_ - token_start_));
     }
-    v.back().output_type = OutputType::NEXT_LINE;
-    v.emplace_back(CommandLine {});
-    token_start_ = pos_ + 1;
+    if (pos_ + 1 != str_line_.size() && str_line_[pos_ + 1] == '|')
+    {
+      v.emplace_back(CommandLine {});
+      v.back().connect_type = ConnectType::EXEC_IF_FAIL;
+      pos_++;
+      token_start_ = pos_ + 1;
+    }
+    else
+    {
+      v.back().output_type = OutputType::NEXT_LINE;
+      v.emplace_back(CommandLine {});
+      token_start_ = pos_ + 1;
+    }
   }
 }
 
