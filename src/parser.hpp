@@ -6,18 +6,14 @@
 #include <string>
 #include <memory>
 
+#include <command_line.hpp>
+
 namespace zhell
 {
-  struct Token
-  {
-    std::string value;
-    bool special;
-  };
-
   class Parser
   {
   public:
-    using str_vec_t = std::vector< Token >;
+    using str_vec_t = std::vector< CommandLine >;
 
     Parser(std::istream& in);
     str_vec_t get_cmd();

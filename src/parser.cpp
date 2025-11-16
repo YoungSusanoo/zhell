@@ -24,6 +24,7 @@ zhell::Parser::str_vec_t zhell::Parser::get_cmd()
   clean();
   std::getline(in_, str_line_, '\n');
   str_vec_t v;
+  v.emplace_back(CommandLine {});
 
   for (pos_ = 0; pos_ < str_line_.size(); pos_++)
   {
@@ -40,7 +41,7 @@ zhell::Parser::str_vec_t zhell::Parser::get_cmd()
   }
   if (token_start_ != pos_)
   {
-    v.emplace_back(temp_ + str_line_.substr(token_start_, str_line_.size() - token_start_), false);
+    v.back().args.emplace_back(temp_ + str_line_.substr(token_start_, str_line_.size() - token_start_));
   }
 
   return v;
@@ -62,14 +63,14 @@ void zhell::Parser::handle_ampersand(str_vec_t& v)
   {
     if (pos_ != token_start_)
     {
-      v.emplace_back(temp_ + str_line_.substr(token_start_, pos_ - token_start_), true);
+      v.back().args.emplace_back(temp_ + str_line_.substr(token_start_, pos_ - token_start_));
     }
-    token_start_ = pos_;
     if (pos_ + 1 != str_line_.size() && str_line_[pos_ + 1] == '&')
     {
       pos_++;
+      v.emplace_back(CommandLine {});
+      v.back().connect_type = ConnectType::NO_EXEC_IF_FAIL;
     }
-    v.emplace_back(temp_ + str_line_.substr(token_start_, pos_ + 1 - token_start_), true);
     token_start_ = pos_ + 1;
   }
 }
@@ -86,7 +87,7 @@ void zhell::Parser::handle_double_quote(str_vec_t& v)
 {
   if (double_quoted_)
   {
-    v.emplace_back(str_line_.substr(token_start_, pos_ - token_start_), false);
+    v.back().args.emplace_back(str_line_.substr(token_start_, pos_ - token_start_));
     double_quoted_ = false;
   }
   else
@@ -102,14 +103,19 @@ void zhell::Parser::handle_pipe(str_vec_t& v)
   {
     if (pos_ != token_start_)
     {
-      v.emplace_back(temp_ + str_line_.substr(token_start_, pos_ - token_start_), true);
+      v.back().args.emplace_back(temp_ + str_line_.substr(token_start_, pos_ - token_start_));
     }
-    token_start_ = pos_;
     if (pos_ + 1 != str_line_.size() && str_line_[pos_ + 1] == '|')
     {
       pos_++;
+      v.emplace_back(CommandLine {});
+      v.back().connect_type = ConnectType::EXEC_IF_FAIL;
     }
-    v.emplace_back(temp_ + str_line_.substr(token_start_, pos_ + 1 - token_start_), true);
+    else
+    {
+      v.back().output_type = OutputType::NEXT_LINE;
+      v.emplace_back(CommandLine{});
+    }
     token_start_ = pos_ + 1;
   }
 }
@@ -122,7 +128,7 @@ void zhell::Parser::handle_space(str_vec_t& v)
   }
   if (pos_ != token_start_)
   {
-    v.emplace_back(temp_ + str_line_.substr(token_start_, pos_ - token_start_), false);
+    v.back().args.emplace_back(temp_ + str_line_.substr(token_start_, pos_ - token_start_));
     temp_.clear();
     token_start_ = pos_ + 1;
   }
