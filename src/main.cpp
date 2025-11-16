@@ -1,11 +1,14 @@
 #include <iostream>
 
+#include <fcntl.h>
+
 #include <parser.hpp>
 #include <commands.hpp>
 
 int main()
 {
   zhell::Parser parser(std::cin);
+  char dir[256];
   while (std::cin)
   {
     zhell::Parser::str_vec_t lines = parser.get_cmd();
@@ -21,6 +24,14 @@ int main()
         pipe(pipes);
         next_input = pipes[0];
         curr_output = pipes[1];
+      }
+      else if (i.output_type == zhell::OutputType::FILE_APPEND)
+      {
+        curr_output = open(i.filename.c_str(), O_WRONLY | O_APPEND | O_CREAT);
+      }
+      else if (i.output_type == zhell::OutputType::FILE_NEW)
+      {
+        curr_output = open(i.filename.c_str(), O_WRONLY | O_TRUNC | O_CREAT);
       }
 
       bool cond_to_execute = last_exec_success && i.connect_type != zhell::ConnectType::EXEC_IF_FAIL;
