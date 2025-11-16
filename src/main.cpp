@@ -8,7 +8,6 @@
 int main()
 {
   zhell::Parser parser(std::cin);
-  char dir[256];
   while (std::cin)
   {
     zhell::Parser::str_vec_t lines = parser.get_cmd();
