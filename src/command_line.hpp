@@ -27,6 +27,7 @@ namespace zhell
     std::string filename;
     ConnectType connect_type;
     OutputType output_type;
+    bool background;
   };
 }
 

@@ -8,7 +8,7 @@
 
 namespace zhell
 {
-  int exec_default(std::vector< std::string >& args, int in, int out);
+  int exec_default(std::vector< std::string >& args, int in, int out, bool background);
   bool exec_cd(std::vector< std::string >& args);
 }
 

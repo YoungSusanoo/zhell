@@ -74,6 +74,11 @@ void zhell::Parser::handle_ampersand(str_vec_t& v)
       v.emplace_back(CommandLine {});
       v.back().connect_type = ConnectType::NO_EXEC_IF_FAIL;
     }
+    else
+    {
+      v.back().background = true;
+      v.emplace_back(CommandLine {});
+    }
     token_start_ = pos_ + 1;
   }
 }

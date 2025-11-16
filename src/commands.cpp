@@ -12,17 +12,17 @@
 
 namespace zhell
 {
-  int fork_and_exec(std::vector< std::string >& args, int in, int out);
+  int fork_and_exec(std::vector< std::string >& args, int in, int out, bool background);
 }
 
-int zhell::exec_default(std::vector< std::string >& args, int in, int out)
+int zhell::exec_default(std::vector< std::string >& args, int in, int out, bool background)
 {
   if (args.empty())
   {
     throw std::invalid_argument("No args");
   }
 
-  return fork_and_exec(args, in, out);
+  return fork_and_exec(args, in, out, background);
 }
 
 bool zhell::exec_cd(std::vector< std::string >& args)
@@ -50,7 +50,7 @@ bool zhell::exec_cd(std::vector< std::string >& args)
   return execution_completed;
 }
 
-int zhell::fork_and_exec(std::vector< std::string >& args, int in, int out)
+int zhell::fork_and_exec(std::vector< std::string >& args, int in, int out, bool background)
 {
   int pid = fork();
   if (pid)
@@ -58,6 +58,14 @@ int zhell::fork_and_exec(std::vector< std::string >& args, int in, int out)
     return pid;
   }
 
+  if (background)
+  {
+    int fd = open("/dev/null", O_WRONLY);
+    dup2(fd, STDOUT_FILENO);
+    setpgid(0, 0);
+    setsid();
+    close(fd);
+  }
   dup2(in, STDIN_FILENO);
   dup2(out, STDOUT_FILENO);
   close_range(3, ~0U, 0);

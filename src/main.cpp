@@ -7,6 +7,31 @@
 #include <parser.hpp>
 #include <commands.hpp>
 
+void exec_command_line(std::queue< int >& children, zhell::CommandLine& i, int in, int out)
+{
+  if (i.connect_type == zhell::ConnectType::NONE)
+  {
+    children.emplace(zhell::exec_default(i.args, in, out, i.background));
+  }
+  else
+  {
+    int status = 0;
+    while (!children.empty())
+    {
+      waitpid(children.front(), &status, 0);
+      children.pop();
+    }
+    if (i.connect_type == zhell::ConnectType::EXEC_IF_FAIL && status)
+    {
+      children.emplace(zhell::exec_default(i.args, in, out, i.background));
+    }
+    else if (i.connect_type == zhell::ConnectType::NO_EXEC_IF_FAIL && !status)
+    {
+      children.emplace(zhell::exec_default(i.args, in, out, i.background));
+    }
+  }
+}
+
 int main()
 {
   zhell::Parser parser(std::cin);
@@ -35,27 +60,12 @@ int main()
         curr_output = open(i.filename.c_str(), O_WRONLY | O_TRUNC | O_CREAT);
       }
 
-      if (i.connect_type == zhell::ConnectType::NONE)
+      try
       {
-        children.emplace(zhell::exec_default(i.args, curr_input, curr_output));
+        exec_command_line(children, i, curr_input, curr_output);
       }
-      else
-      {
-        int status = 0;
-        while (!children.empty())
-        {
-          waitpid(children.front(), &status, 0);
-          children.pop();
-        }
-        if (i.connect_type == zhell::ConnectType::EXEC_IF_FAIL && status)
-        {
-          children.emplace(zhell::exec_default(i.args, curr_input, curr_output));
-        }
-        else if (i.connect_type == zhell::ConnectType::NO_EXEC_IF_FAIL && !status)
-        {
-          children.emplace(zhell::exec_default(i.args, curr_input, curr_output));
-        }
-      }
+      catch (...)
+      {}
 
       if (curr_input != STDIN_FILENO)
       {
