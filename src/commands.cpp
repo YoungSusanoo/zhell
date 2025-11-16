@@ -15,21 +15,14 @@ namespace zhell
   int fork_and_exec(std::vector< std::string >& args, int in, int out);
 }
 
-bool zhell::exec_default(std::vector< std::string >& args, int in, int out)
+int zhell::exec_default(std::vector< std::string >& args, int in, int out)
 {
   if (args.empty())
   {
-    return false;
-  }
-  if (args.front() == "cd")
-  {
-    return exec_cd(args);
+    throw std::invalid_argument("No args");
   }
 
-  int pid = fork_and_exec(args, in, out);
-  int status = 0;
-  waitpid(pid, &status, 0);
-  return !status;
+  return fork_and_exec(args, in, out);
 }
 
 bool zhell::exec_cd(std::vector< std::string >& args)
@@ -78,6 +71,6 @@ int zhell::fork_and_exec(std::vector< std::string >& args, int in, int out)
   args_c_str[args.size()] = nullptr;
 
   execvp(args.front().c_str(), args_c_str);
-  std::cout << args.front() << ": " << strerror(errno);
+  std::cerr << args.front() << ": " << strerror(errno);
   std::exit(1);
 }
