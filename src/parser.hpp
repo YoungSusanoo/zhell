@@ -8,10 +8,16 @@
 
 namespace zhell
 {
+  struct Token
+  {
+    std::string value;
+    bool special;
+  };
+
   class Parser
   {
   public:
-    using str_vec_t = std::vector< std::string >;
+    using str_vec_t = std::vector< Token >;
 
     Parser(std::istream& in);
     str_vec_t get_cmd();
