@@ -6,20 +6,18 @@
 #include <string>
 #include <memory>
 
-#include <command_line.hpp>
-
 namespace zhell
 {
   class Parser
   {
   public:
-    using lines_t = std::vector< CommandLine >;
+    using str_vec_t = std::vector< std::string >;
 
     Parser(std::istream& in);
-    lines_t get_cmd();
+    str_vec_t get_cmd();
 
   private:
-    std::unordered_map< char, void (Parser::*)(lines_t&) > symbols_;
+    std::unordered_map< char, void (Parser::*)(str_vec_t&) > symbols_;
     std::string str_line_;
     std::string temp_;
     size_t token_start_;
@@ -30,11 +28,11 @@ namespace zhell
 
     void clean();
 
-    void handle_ampersand(lines_t& v);
-    void handle_slash(lines_t& v);
-    void handle_double_quote(lines_t& v);
-    void handle_pipe(lines_t& v);
-    void handle_space(lines_t& v);
+    void handle_ampersand(str_vec_t& v);
+    void handle_slash(str_vec_t& v);
+    void handle_double_quote(str_vec_t& v);
+    void handle_pipe(str_vec_t& v);
+    void handle_space(str_vec_t& v);
   };
 }
 
