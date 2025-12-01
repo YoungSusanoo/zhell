@@ -53,11 +53,11 @@ int main()
       }
       else if (i.output_type == zhell::OutputType::FILE_APPEND)
       {
-        curr_output = open(i.filename.c_str(), O_WRONLY | O_APPEND | O_CREAT);
+        curr_output = open(i.filename.c_str(), O_WRONLY | O_APPEND | O_CREAT, 777);
       }
       else if (i.output_type == zhell::OutputType::FILE_NEW)
       {
-        curr_output = open(i.filename.c_str(), O_WRONLY | O_TRUNC | O_CREAT);
+        curr_output = open(i.filename.c_str(), O_WRONLY | O_TRUNC | O_CREAT, 777);
       }
 
       try
