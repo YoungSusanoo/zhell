@@ -16,6 +16,7 @@ zhell::Parser::Parser(std::istream& in):
   symbols_['&'] = &Parser::handle_ampersand;
   symbols_['\\'] = &Parser::handle_slash;
   symbols_['"'] = &Parser::handle_double_quote;
+  symbols_['\''] = &Parser::handle_single_quote;
   symbols_['|'] = &Parser::handle_pipe;
   symbols_[' '] = &Parser::handle_space;
   symbols_['>'] = &Parser::handle_out_redir;
@@ -62,30 +63,32 @@ void zhell::Parser::clean()
 
 void zhell::Parser::handle_ampersand(str_vec_t& v)
 {
-  if (!double_quoted_)
+  if (double_quoted_ || single_quoted_)
   {
-    if (pos_ != token_start_)
-    {
-      emplace_str_or_filename(v);
-    }
-    if (pos_ + 1 != str_line_.size() && str_line_[pos_ + 1] == '&')
-    {
-      pos_++;
-      v.emplace_back(CommandLine {});
-      v.back().connect_type = ConnectType::NO_EXEC_IF_FAIL;
-    }
-    else
-    {
-      v.back().background = true;
-      v.emplace_back(CommandLine {});
-    }
-    token_start_ = pos_ + 1;
+    return;
   }
+
+  if (pos_ != token_start_)
+  {
+    emplace_str_or_filename(v);
+  }
+  if (pos_ + 1 != str_line_.size() && str_line_[pos_ + 1] == '&')
+  {
+    pos_++;
+    v.emplace_back(CommandLine {});
+    v.back().connect_type = ConnectType::NO_EXEC_IF_FAIL;
+  }
+  else
+  {
+    v.back().background = true;
+    v.emplace_back(CommandLine {});
+  }
+  token_start_ = pos_ + 1;
 }
 
 void zhell::Parser::handle_slash(str_vec_t& v)
 {
-  if (!double_quoted_)
+  if (!double_quoted_ && !single_quoted_)
   {
     escaped_ = true;
   }
@@ -93,44 +96,66 @@ void zhell::Parser::handle_slash(str_vec_t& v)
 
 void zhell::Parser::handle_double_quote(str_vec_t& v)
 {
-  if (double_quoted_)
+  if (!single_quoted_)
   {
-    emplace_str_or_filename(v);
-    double_quoted_ = false;
-  }
-  else
-  {
-    double_quoted_ = true;
-  }
-  token_start_ = pos_ + 1;
-}
-
-void zhell::Parser::handle_pipe(str_vec_t& v)
-{
-  if (!double_quoted_)
-  {
-    if (pos_ != token_start_)
+    if (double_quoted_)
     {
       emplace_str_or_filename(v);
-    }
-    if (pos_ + 1 != str_line_.size() && str_line_[pos_ + 1] == '|')
-    {
-      pos_++;
-      v.emplace_back(CommandLine {});
-      v.back().connect_type = ConnectType::EXEC_IF_FAIL;
+      double_quoted_ = false;
     }
     else
     {
-      v.back().output_type = OutputType::NEXT_LINE;
-      v.emplace_back(CommandLine {});
+      double_quoted_ = true;
     }
     token_start_ = pos_ + 1;
   }
 }
 
+void zhell::Parser::handle_single_quote(str_vec_t& v)
+{
+  if (!double_quoted_)
+  {
+    if (single_quoted_)
+    {
+      emplace_str_or_filename(v);
+      single_quoted_ = false;
+    }
+    else
+    {
+      single_quoted_ = true;
+    }
+    token_start_ = pos_ + 1;
+  }
+}
+
+void zhell::Parser::handle_pipe(str_vec_t& v)
+{
+  if (double_quoted_ || single_quoted_)
+  {
+    return;
+  }
+
+  if (pos_ != token_start_)
+  {
+    emplace_str_or_filename(v);
+  }
+  if (pos_ + 1 != str_line_.size() && str_line_[pos_ + 1] == '|')
+  {
+    pos_++;
+    v.emplace_back(CommandLine {});
+    v.back().connect_type = ConnectType::EXEC_IF_FAIL;
+  }
+  else
+  {
+    v.back().output_type = OutputType::NEXT_LINE;
+    v.emplace_back(CommandLine {});
+  }
+  token_start_ = pos_ + 1;
+}
+
 void zhell::Parser::handle_space(str_vec_t& v)
 {
-  if (double_quoted_)
+  if (double_quoted_ || single_quoted_)
   {
     return;
   }
@@ -148,7 +173,7 @@ void zhell::Parser::handle_space(str_vec_t& v)
 
 void zhell::Parser::handle_out_redir(str_vec_t& v)
 {
-  if (double_quoted_)
+  if (double_quoted_ || single_quoted_)
   {
     return;
   }

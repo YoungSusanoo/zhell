@@ -26,6 +26,7 @@ namespace zhell
     size_t pos_;
     bool escaped_;
     bool double_quoted_;
+    bool single_quoted_;
     bool out_redired_;
     std::istream& in_;
 
@@ -34,6 +35,7 @@ namespace zhell
     void handle_ampersand(str_vec_t& v);
     void handle_slash(str_vec_t& v);
     void handle_double_quote(str_vec_t& v);
+    void handle_single_quote(str_vec_t& v);
     void handle_pipe(str_vec_t& v);
     void handle_space(str_vec_t& v);
     void handle_out_redir(str_vec_t& v);
