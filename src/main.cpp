@@ -72,7 +72,7 @@ int main()
       {
         return 0;
       }
-      else if (i.args.front() != "exit")
+      else if (i.args.front() != "exit" && !i.args.front().empty())
       {
         exec_command_line(children, i, curr_input, curr_output);
       }
