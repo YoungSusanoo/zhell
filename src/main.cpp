@@ -60,12 +60,18 @@ int main()
         curr_output = open(i.filename.c_str(), O_WRONLY | O_TRUNC | O_CREAT, 777);
       }
 
-      try
+      if (i.args.front() == "cd")
+      {
+        zhell::exec_cd(i.args);
+      }
+      else if (i.args.front() == "exit" && i.output_type != zhell::OutputType::NEXT_LINE)
+      {
+        return 0;
+      }
+      else if (i.args.front() != "exit")
       {
         exec_command_line(children, i, curr_input, curr_output);
       }
-      catch (...)
-      {}
 
       if (curr_input != STDIN_FILENO)
       {

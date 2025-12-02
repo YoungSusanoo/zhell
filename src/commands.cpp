@@ -19,7 +19,7 @@ int zhell::exec_default(std::vector< std::string >& args, int in, int out, bool 
 {
   if (args.empty())
   {
-    throw std::invalid_argument("No args");
+    return 0;
   }
 
   return fork_and_exec(args, in, out, background);
