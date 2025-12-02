@@ -79,7 +79,6 @@ int zhell::fork_and_exec(std::vector< std::string >& args, int in, int out, bool
   {
     setpgid(0, 0);
     setsid();
-    chdir("/");
     umask(0);
   }
   dup2(in, STDIN_FILENO);
