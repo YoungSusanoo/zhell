@@ -99,7 +99,7 @@ void zhell::Parser::handle_ampersand(str_vec_t& v)
 
 void zhell::Parser::handle_slash(str_vec_t& v)
 {
-  if (!double_quoted_ && !single_quoted_)
+  if (!single_quoted_)
   {
     escaped_ = true;
   }
