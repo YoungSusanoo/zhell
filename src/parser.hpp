@@ -39,6 +39,7 @@ namespace zhell
     void handle_pipe(str_vec_t& v);
     void handle_space(str_vec_t& v);
     void handle_out_redir(str_vec_t& v);
+    void handle_comment(str_vec_t& v);
 
     void emplace_str_or_filename(str_vec_t& v);
   };

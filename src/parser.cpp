@@ -20,6 +20,7 @@ zhell::Parser::Parser(std::istream& in):
   symbols_['|'] = &Parser::handle_pipe;
   symbols_[' '] = &Parser::handle_space;
   symbols_['>'] = &Parser::handle_out_redir;
+  symbols_['#'] = &Parser::handle_comment;
 }
 
 zhell::Parser::str_vec_t zhell::Parser::get_cmd()
@@ -30,6 +31,10 @@ zhell::Parser::str_vec_t zhell::Parser::get_cmd()
   v.emplace_back(CommandLine {});
   do
   {
+    if (escaped_)
+    {
+      escaped_ = false;
+    }
     std::getline(in_, str_line_, '\n');
     for (pos_ = 0; pos_ < str_line_.size(); pos_++)
     {
@@ -46,7 +51,14 @@ zhell::Parser::str_vec_t zhell::Parser::get_cmd()
     }
     if (single_quoted_ || double_quoted_ || escaped_)
     {
-      temp_.append(str_line_.substr(token_start_, pos_ - token_start_) + "\n");
+      if (!escaped_)
+      {
+        temp_.append(str_line_.substr(token_start_, pos_ - token_start_) + "\n");
+      }
+      else
+      {
+        temp_.append(str_line_.substr(token_start_, pos_ - token_start_ - 1));
+      }
       pos_ = 0;
       token_start_ = 0;
     }
@@ -146,7 +158,7 @@ void zhell::Parser::handle_pipe(str_vec_t& v)
     return;
   }
 
-  if (pos_ != token_start_)
+  if (pos_ != token_start_ || !temp_.empty())
   {
     emplace_str_or_filename(v);
   }
@@ -203,6 +215,17 @@ void zhell::Parser::handle_out_redir(str_vec_t& v)
   }
   out_redired_ = true;
   token_start_ = pos_ + 1;
+}
+
+void zhell::Parser::handle_comment(str_vec_t& v)
+{
+  if (double_quoted_ || single_quoted_)
+  {
+    return;
+  }
+  emplace_str_or_filename(v);
+  pos_ = str_line_.size();
+  token_start_ = pos_;
 }
 
 void zhell::Parser::emplace_str_or_filename(str_vec_t& v)
