@@ -25,23 +25,34 @@ zhell::Parser::Parser(std::istream& in):
 zhell::Parser::str_vec_t zhell::Parser::get_cmd()
 {
   clean();
-  std::getline(in_, str_line_, '\n');
+
   str_vec_t v;
   v.emplace_back(CommandLine {});
-
-  for (pos_ = 0; pos_ < str_line_.size(); pos_++)
+  do
   {
-    if (escaped_)
+    std::getline(in_, str_line_, '\n');
+    for (pos_ = 0; pos_ < str_line_.size(); pos_++)
     {
-      temp_.append(str_line_.substr(token_start_, pos_ - token_start_ - 1));
-      escaped_ = false;
-      token_start_ = pos_;
+      if (escaped_)
+      {
+        temp_.append(str_line_.substr(token_start_, pos_ - token_start_ - 1));
+        escaped_ = false;
+        token_start_ = pos_;
+      }
+      else if (symbols_.contains(str_line_[pos_]))
+      {
+        (this->*symbols_[str_line_[pos_]])(v);
+      }
     }
-    else if (symbols_.contains(str_line_[pos_]))
+    if (single_quoted_ || double_quoted_ || escaped_)
     {
-      (this->*symbols_[str_line_[pos_]])(v);
+      temp_.append(str_line_.substr(token_start_, pos_ - token_start_) + "\n");
+      pos_ = 0;
+      token_start_ = 0;
     }
   }
+  while (single_quoted_ || double_quoted_ || escaped_);
+
   if (token_start_ != pos_)
   {
     emplace_str_or_filename(v);
@@ -199,10 +210,12 @@ void zhell::Parser::emplace_str_or_filename(str_vec_t& v)
   if (out_redired_)
   {
     v.back().filename = temp_ + str_line_.substr(token_start_, pos_ - token_start_);
+    temp_.clear();
     v.emplace_back(CommandLine {});
   }
   else
   {
     v.back().args.emplace_back(temp_ + str_line_.substr(token_start_, pos_ - token_start_));
+    temp_.clear();
   }
 }
