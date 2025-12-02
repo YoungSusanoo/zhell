@@ -41,8 +41,16 @@ zhell::Parser::str_vec_t zhell::Parser::get_cmd()
       if (escaped_)
       {
         temp_.append(str_line_.substr(token_start_, pos_ - token_start_ - 1));
+        if (str_line_[pos_] == 'n')
+        {
+          temp_.append("\n");
+          token_start_ = pos_ + 1;
+        }
+        else
+        {
+          token_start_ = pos_;
+        }
         escaped_ = false;
-        token_start_ = pos_;
       }
       else if (symbols_.contains(str_line_[pos_]))
       {
@@ -234,7 +242,6 @@ void zhell::Parser::emplace_str_or_filename(str_vec_t& v)
   {
     v.back().filename = temp_ + str_line_.substr(token_start_, pos_ - token_start_);
     temp_.clear();
-    v.emplace_back(CommandLine {});
   }
   else
   {

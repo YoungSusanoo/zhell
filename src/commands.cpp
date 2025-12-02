@@ -9,6 +9,7 @@
 #include <errno.h>
 #include <string.h>
 #include <wait.h>
+#include <sys/stat.h>
 
 namespace zhell
 {
@@ -20,6 +21,10 @@ int zhell::exec_default(std::vector< std::string >& args, int in, int out, bool 
   if (args.empty())
   {
     return 0;
+  }
+  if (args.front() == "cd")
+  {
+    return exec_cd(args);
   }
 
   return fork_and_exec(args, in, out, background);
@@ -58,13 +63,24 @@ int zhell::fork_and_exec(std::vector< std::string >& args, int in, int out, bool
     return pid;
   }
 
+  if (args.front() == "exit")
+  {
+    try
+    {
+      std::exit(std::stoi(args.at(1)));
+    }
+    catch (...)
+    {
+      std::exit(0);
+    }
+  }
+
   if (background)
   {
-    int fd = open("/dev/null", O_WRONLY);
-    dup2(fd, STDOUT_FILENO);
     setpgid(0, 0);
     setsid();
-    close(fd);
+    chdir("/");
+    umask(0);
   }
   dup2(in, STDIN_FILENO);
   dup2(out, STDOUT_FILENO);

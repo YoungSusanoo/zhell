@@ -36,12 +36,14 @@ int main()
 {
   zhell::Parser parser(std::cin);
   std::queue< int > children;
+  int exit_code = 0;
   while (std::cin)
   {
     zhell::Parser::str_vec_t lines = parser.get_cmd();
     int curr_input = STDIN_FILENO;
     int next_input = STDIN_FILENO;
     int curr_output = STDOUT_FILENO;
+    bool was_in_pipe = false;
     for (auto& i : lines)
     {
       if (i.args.empty())
@@ -54,26 +56,30 @@ int main()
         pipe(pipes);
         next_input = pipes[0];
         curr_output = pipes[1];
+        was_in_pipe = true;
       }
       else if (i.output_type == zhell::OutputType::FILE_APPEND)
       {
-        curr_output = open(i.filename.c_str(), O_WRONLY | O_APPEND | O_CREAT, 777);
+        curr_output = open(i.filename.c_str(), O_WRONLY | O_APPEND | O_CREAT, 0777);
       }
       else if (i.output_type == zhell::OutputType::FILE_NEW)
       {
-        curr_output = open(i.filename.c_str(), O_WRONLY | O_TRUNC | O_CREAT, 777);
+        curr_output = open(i.filename.c_str(), O_WRONLY | O_TRUNC | O_CREAT, 0777);
       }
 
-      if (i.args.front() == "cd")
+      if (!i.args.front().empty())
       {
-        zhell::exec_cd(i.args);
-      }
-      else if (i.args.front() == "exit" && i.output_type != zhell::OutputType::NEXT_LINE)
-      {
-        return 0;
-      }
-      else if (i.args.front() != "exit" && !i.args.front().empty())
-      {
+        if (i.args.front() == "exit" && !i.background && !was_in_pipe)
+        {
+          exit_code = 0;
+          try
+          {
+            exit_code = std::stoi(i.args.at(1));
+          }
+          catch (...)
+          {}
+          return exit_code;
+        }
         exec_command_line(children, i, curr_input, curr_output);
       }
 
@@ -93,8 +99,9 @@ int main()
 
     while (!children.empty())
     {
-      waitpid(children.front(), nullptr, 0);
+      waitpid(children.front(), &exit_code, 0);
       children.pop();
     }
   }
+  return WEXITSTATUS(exit_code);
 }
