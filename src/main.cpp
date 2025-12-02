@@ -44,6 +44,10 @@ int main()
     int curr_output = STDOUT_FILENO;
     for (auto& i : lines)
     {
+      if (i.args.empty())
+      {
+        continue;
+      }
       if (i.output_type == zhell::OutputType::NEXT_LINE)
       {
         int pipes[2];
